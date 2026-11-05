@@ -1,0 +1,46 @@
+options {
+    STATIC = false;
+}
+
+PARSER_BEGIN(CompiladorExp)
+
+public class CompiladorExp {
+    // CORREÇÃO 1: Adicionado o "static"
+    public static void main(String[] args) { 
+        try {
+            System.out.println("Compilador iniciado!");
+            System.out.println("Digite uma expressão e aperte enter.");
+            System.out.println("Para sair, aperte Ctrl+Z e enter.");
+
+            // Instanciando o parser lendo o teclado
+            CompiladorExp parser = new CompiladorExp(System.in);
+            
+            // CORREÇÃO 2: "parser" no lugar de "parse"
+            double resultado = parser.Start(); 
+
+            System.out.println("\n=> Sintaxe Correta!");
+            System.out.println("\n=>O resultado é: " + resultado);
+
+        } catch (ParseException e) {
+            System.out.println("\n[ERRO] Erro de sintaxe encontrado!");
+            System.out.println(e.getMessage());
+        } catch (TokenMgrError e) {
+            System.out.println("\n[ERRO] Erro léxico (símbolo inválido) encontrado!");
+            System.out.println(e.getMessage());
+        }
+    }
+}
+
+PARSER_END(CompiladorExp)
+
+// --- REGRAS LÉXICAS ---
+SKIP : { " " | "\t" | "\n" | "\r" }
+TOKEN : { < NUMERO: (["0"-"9"])+ > }
+
+// --- REGRAS SINTÁTICAS ---
+double Start() :
+{ Token t; }
+{
+    t = <NUMERO> <EOF>
+    { return Double.parseDouble(t.image); }
+}

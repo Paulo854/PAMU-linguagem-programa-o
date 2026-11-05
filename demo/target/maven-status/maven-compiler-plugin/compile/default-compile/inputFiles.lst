@@ -1,0 +1,8 @@
+/workspaces/compilador-teste/demo/src/main/java/com/example/Main.java
+/workspaces/compilador-teste/demo/target/generated-sources/javacc/CompiladorExp.java
+/workspaces/compilador-teste/demo/target/generated-sources/javacc/CompiladorExpConstants.java
+/workspaces/compilador-teste/demo/target/generated-sources/javacc/CompiladorExpTokenManager.java
+/workspaces/compilador-teste/demo/target/generated-sources/javacc/ParseException.java
+/workspaces/compilador-teste/demo/target/generated-sources/javacc/SimpleCharStream.java
+/workspaces/compilador-teste/demo/target/generated-sources/javacc/Token.java
+/workspaces/compilador-teste/demo/target/generated-sources/javacc/TokenMgrError.java
