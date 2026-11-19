@@ -1,30 +1,62 @@
+options {
+    STATIC = false;
+}
+
 PARSER_BEGIN(CompiladorExp)
 package com.example.parser;
 
+import com.example.ast.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 
 public class CompiladorExp {
 
     public static Map<String, Double> memoria = new HashMap<String, Double>();
-    private static Scanner teclado = new Scanner(System.in);
+    private static Scanner teclado = new Scanner(System.in).useLocale(Locale.US);
+
+    public static void limparMemoria() {
+        memoria.clear();
+    }
 
     public static void executar(String codigo) {
+        Ambiente env = new Ambiente(memoria, teclado, System.out);
+        executar(codigo, env);
+    }
+
+    public static void executar(String codigo, InputStream entrada, PrintStream saida) {
+        Ambiente env = new Ambiente(memoria, entrada, saida);
+        executar(codigo, env);
+    }
+
+    public static void executarArquivo(Path caminho) throws IOException {
+        String codigo = Files.readString(caminho, StandardCharsets.UTF_8);
+        executar(codigo);
+    }
+
+    public static void executar(String codigo, Ambiente env) {
         try {
             Reader reader = new StringReader(codigo);
             CompiladorExp parser = new CompiladorExp(reader);
-            parser.programa();
+            Comando prog = parser.programa();
+            prog.executar(env);
         } catch (ParseException e) {
-            Token t = e.currentToken.next;
+            Token t = (e.currentToken != null) ? e.currentToken.next : null;
             int lin = (t != null) ? t.beginLine : 0;
             int col = (t != null) ? t.beginColumn : 0;
             String sim = (t != null) ? t.image : "";
-            System.out.println("[ERRO SINTATICO] Linha " + lin + ", Coluna " + col + ": Simbolo inesperado '" + sim + "'.");
-        } catch (Throwable e) {
-            System.out.println("[ERRO LEXICO] " + e.getMessage());
+            env.escrever("[ERRO SINTATICO] Linha " + lin + ", Coluna " + col + ": Simbolo inesperado '" + sim + "'.");
+        } catch (TokenMgrError e) {
+            env.escrever("[ERRO LEXICO] " + e.getMessage());
+        } catch (RuntimeException e) {
+            env.escrever("[ERRO DE EXECUCAO] " + e.getMessage());
         }
     }
 }
@@ -34,6 +66,7 @@ SKIP :
 {
     " " | "\t" | "\n" | "\r"
 |   <"//" (~["\n", "\r"])*>
+|   <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/">
 }
 
 TOKEN :
@@ -70,114 +103,134 @@ TOKEN :
 |   < IDENTIFICADOR: ["a"-"z", "A"-"Z", "_"] (["a"-"z", "A"-"Z", "0"-"9", "_"])* >
 }
 
-void programa() :
-{}
+Comando programa() :
 {
-    listaComandos() <EOF>
-}
-
-void bloco() :
-{}
-{
-    <ABRE_CHAVE> listaComandos() <FECHA_CHAVE>
-}
-
-void listaComandos() :
-{}
-{
-    ( comando() )+
-}
-
-void comando() :
-{
-    double r;
+    Comando lista;
 }
 {
-    LOOKAHEAD(2) atribCmd()
-|   condCmd()
-|   repetCmd()
-|   leitCmd()
-|   escrCmd()
-|   r = exp() [ <PONTO_VIRGULA> ]
+    lista = listaComandos() <EOF>
     {
-        System.out.println("[SAIDA ACESSIVEL] O resultado da expressao e: " + r);
+        return lista;
     }
 }
 
-void atribCmd() :
+Comando bloco() :
+{
+    Comando lista = new BlocoCmd(new ArrayList<Comando>());
+}
+{
+    <ABRE_CHAVE> [ lista = listaComandos() ] <FECHA_CHAVE>
+    {
+        return lista;
+    }
+}
+
+Comando listaComandos() :
+{
+    List<Comando> comandos = new ArrayList<Comando>();
+    Comando c;
+}
+{
+    (
+        c = comando()
+        {
+            comandos.add(c);
+        }
+    )+
+    {
+        return new BlocoCmd(comandos);
+    }
+}
+
+Comando comando() :
+{
+    Comando c;
+    Expressao e;
+}
+{
+    LOOKAHEAD(2) c = atribCmd() { return c; }
+|   c = condCmd() { return c; }
+|   c = repetCmd() { return c; }
+|   c = leitCmd() { return c; }
+|   c = escrCmd() { return c; }
+|   e = exp() [ <PONTO_VIRGULA> ] { return new EscrCmd(e); }
+}
+
+Comando atribCmd() :
 {
     Token id;
-    double valor;
+    Expressao valor;
 }
 {
     id = <IDENTIFICADOR> <ATRIBUICAO> valor = exp() <PONTO_VIRGULA>
     {
-        memoria.put(id.image, valor);
+        return new AtribCmd(id.image, valor);
     }
 }
 
-void condCmd() :
-{}
+Comando condCmd() :
 {
-    <PA> <ABRE_PAR> exp() <FECHA_PAR> bloco() [ LOOKAHEAD(1) <MU> bloco() ]
+    Expressao cond;
+    Comando bSe;
+    Comando bSenao = null;
+}
+{
+    <PA> <ABRE_PAR> cond = exp() <FECHA_PAR> bSe = bloco() [ LOOKAHEAD(1) <MU> bSenao = bloco() ]
+    {
+        return new CondCmd(cond, bSe, bSenao);
+    }
 }
 
-void repetCmd() :
-{}
+Comando repetCmd() :
 {
-    <PARETIR> <ABRE_PAR> exp() <FECHA_PAR> bloco()
-|   <MUREPETI> <ABRE_PAR> exp() <FECHA_PAR> bloco()
+    Expressao cond;
+    Comando corpo;
+}
+{
+    ( <PARETIR> | <MUREPETI> ) <ABRE_PAR> cond = exp() <FECHA_PAR> corpo = bloco()
+    {
+        return new RepetCmd(cond, corpo);
+    }
 }
 
-void leitCmd() :
+Comando leitCmd() :
 {
     Token id;
 }
 {
     ( <MULER> | <PALER> ) <ABRE_PAR> id = <IDENTIFICADOR> <FECHA_PAR> [ <PONTO_VIRGULA> ]
     {
-        System.out.print("Digite o valor de " + id.image + ": ");
-        try {
-            double v = teclado.nextDouble();
-            memoria.put(id.image, v);
-        } catch (Exception e) {
-            memoria.put(id.image, 0.0);
-            teclado.nextLine();
-        }
+        return new LeitCmd(id.image);
     }
 }
 
-void escrCmd() :
+Comando escrCmd() :
 {
-    double val;
+    Expressao val;
 }
 {
     ( <MUECREVE> | <PAESCREVE> ) <ABRE_PAR> val = exp() <FECHA_PAR> [ <PONTO_VIRGULA> ]
     {
-        System.out.println("[SAIDA ACESSIVEL] O resultado da expressao e: " + val);
+        return new EscrCmd(val);
     }
 }
 
-double exp() :
+Expressao exp() :
 {
-    double v1, v2;
-    String op = null;
+    Expressao esq;
+    Expressao dir;
+    String op;
 }
 {
-    v1 = expSimples()
+    esq = expSimples()
     [
-        op = opRelacional() v2 = expSimples()
+        op = opRelacional() dir = expSimples()
         {
-            if ("<".equals(op)) return (v1 < v2) ? 1.0 : 0.0;
-            if ("<=".equals(op)) return (v1 <= v2) ? 1.0 : 0.0;
-            if (">".equals(op)) return (v1 > v2) ? 1.0 : 0.0;
-            if (">=".equals(op)) return (v1 >= v2) ? 1.0 : 0.0;
-            if ("==".equals(op)) return (v1 == v2) ? 1.0 : 0.0;
-            if ("!=".equals(op)) return (v1 != v2) ? 1.0 : 0.0;
+            return new BinariaExp(esq, op, dir);
         }
     ]
     {
-        return v1;
+        return esq;
     }
 }
 
@@ -192,19 +245,18 @@ String opRelacional() :
     }
 }
 
-double expSimples() :
+Expressao expSimples() :
 {
-    double total;
-    double termo;
+    Expressao total;
+    Expressao proximo;
     String op;
 }
 {
     total = termo()
     (
-        op = opSoma() termo = termo()
+        op = opSoma() proximo = termo()
         {
-            if ("+".equals(op)) total += termo;
-            else if ("-".equals(op)) total -= termo;
+            total = new BinariaExp(total, op, proximo);
         }
     )*
     {
@@ -223,27 +275,24 @@ String opSoma() :
     }
 }
 
-double termo() :
+Expressao termo() :
 {
-    double total;
-    double fator;
+    Expressao total;
+    Expressao proximo;
     String op;
 }
 {
     total = fator()
     (
-        LOOKAHEAD(opMult())
         op = opMult()
-        fator = fator()
+        proximo = fator()
         {
-            if ("*".equals(op)) total *= fator;
-            else if ("/".equals(op)) total = (fator != 0) ? (total / fator) : 0;
+            total = new BinariaExp(total, op, proximo);
         }
     |
-        LOOKAHEAD(<ABRE_PAR>)
-        fator = fator()
+        <ABRE_PAR> proximo = exp() <FECHA_PAR>
         {
-            total *= fator; // Multiplicação implícita: 2(12) => 24
+            total = new BinariaExp(total, "*", proximo);
         }
     )*
     {
@@ -262,20 +311,15 @@ String opMult() :
     }
 }
 
-double fator() :
+Expressao fator() :
 {
-    double v;
+    Expressao e;
     Token t;
 }
 {
-    <ABRE_PAR> v = exp() <FECHA_PAR> { return v; }
-|   t = <NUMERO> { return Double.parseDouble(t.image); }
-|   t = <IDENTIFICADOR>
-    {
-        if (memoria.containsKey(t.image)) {
-            return memoria.get(t.image);
-        }
-        System.out.println("[AVISO] Variavel '" + t.image + "' nao declarada. Assumindo 0.");
-        return 0.0;
-    }
+    <ABRE_PAR> e = exp() <FECHA_PAR> { return e; }
+|   <MENOS> e = fator() { return new UnariaExp("-", e); }
+|   <MAIS> e = fator() { return new UnariaExp("+", e); }
+|   t = <NUMERO> { return new NumeroExp(Double.parseDouble(t.image)); }
+|   t = <IDENTIFICADOR> { return new VariavelExp(t.image); }
 }
