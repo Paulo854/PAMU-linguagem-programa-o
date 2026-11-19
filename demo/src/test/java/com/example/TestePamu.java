@@ -88,7 +88,13 @@ public class TestePamu {
                 saida10.contains("[ERRO SINTATICO]"),
                 saida10);
 
-        System.out.println("\nTodos os 10 testes da linguagem PAMU passaram com sucesso!");
+        // 11. Escrita de texto (string) em paescreve e muecreve
+        String saida11 = rodar("paler(nota); pa (nota >= 7) { paescreve(\"Aprovado\"); } mu { muecreve(\"Reprovado\"); }", "8\n");
+        verificar("Escrita de string em paescreve/muecreve",
+                saida11.contains("Aprovado") && !saida11.contains("Reprovado"),
+                saida11);
+
+        System.out.println("\nTodos os 11 testes da linguagem PAMU passaram com sucesso!");
     }
 }
 

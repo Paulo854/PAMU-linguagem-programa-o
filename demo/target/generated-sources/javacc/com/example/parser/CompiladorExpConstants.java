@@ -61,7 +61,9 @@ public interface CompiladorExpConstants {
   /** RegularExpression Id. */
   int NUMERO = 31;
   /** RegularExpression Id. */
-  int IDENTIFICADOR = 32;
+  int STRING = 32;
+  /** RegularExpression Id. */
+  int IDENTIFICADOR = 33;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -100,6 +102,7 @@ public interface CompiladorExpConstants {
     "\"*\"",
     "\"/\"",
     "<NUMERO>",
+    "<STRING>",
     "<IDENTIFICADOR>",
   };
 

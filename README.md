@@ -58,6 +58,7 @@ fator          -> '(' exp ')'
 > **Notas léxicas e sintáticas:**
 > - Comentários de linha (`// ...`) e de bloco (`/* ... */`) são ignorados.
 > - Números suportam inteiros e decimais (ex.: `42`, `3.14`) e sinal unário (`-x`, `+5`).
+> - Comandos de escrita (`paescreve` e `muecreve`) aceitam tanto expressões numéricas quanto textos entre aspas duplas (ex.: `paescreve("Aprovado");`).
 > - Ponto e vírgula (`;`) em comandos de leitura (`muler`/`paler`) e escrita (`muecreve`/`paescreve`) é aceito como opcional, atendendo às duas formas da especificação.
 
 ---

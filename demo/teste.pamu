@@ -1,0 +1,7 @@
+paler(nota);
+
+pa (nota >= 7) {
+    paescreve(1);
+} mu {
+    muecreve(0);
+}
