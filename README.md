@@ -80,13 +80,13 @@ Veja `exemplos/validos` e `exemplos/invalidos`. Os arquivos inválidos demonstra
 
 ## Matriz de responsabilidade
 
-Os responsáveis individuais não constam nos arquivos disponíveis; o grupo deve preencher os nomes reais e ajustar a divisão conforme o trabalho efetivamente realizado antes da entrega. Cada pessoa deve explicar suas regras e o código correspondente.
+A matriz abaixo identifica o responsável pelo desenvolvimento de cada parte da linguagem, conforme o trabalho efetivamente realizado. O responsável deve explicar as regras e o código correspondente durante a apresentação.
 
 | Responsável | Parte | Código e regras para apresentar |
 | --- | --- | --- |
-| A preencher | Análise léxica e erros | `SKIP`, `TOKEN`, `executar` em `CompiladorExp.jj` |
-| A preencher | Programa, blocos e atribuição | `programa`, `bloco`, `listaComandos`, `comando`, `atribCmd`; `BlocoCmd`, `AtribCmd` |
-| A preencher | Condições e repetição | `condCmd`, `repetCmd`; `CondCmd`, `RepetCmd` |
-| A preencher | Entrada e saída | `leitCmd`, `escrCmd`; `LeitCmd`, `EscrCmd`, `Ambiente` |
-| A preencher | Expressões e operadores | `exp`, `opRelacional`, `expSimples`, `opSoma`, `termo`, `opMult`, `fator`; classes `*Exp` |
-| A preencher | Integração, execução e testes | `Main`, `pom.xml`, `TestePamu` e exemplos |
+| Paulo Victor | Análise léxica e erros | `SKIP`, `TOKEN`, `executar` em `CompiladorExp.jj` |
+| Paulo Victor | Programa, blocos e atribuição | `programa`, `bloco`, `listaComandos`, `comando`, `atribCmd`; `BlocoCmd`, `AtribCmd` |
+| Paulo Victor | Condições e repetição | `condCmd`, `repetCmd`; `CondCmd`, `RepetCmd` |
+| Paulo Victor | Entrada e saída | `leitCmd`, `escrCmd`; `LeitCmd`, `EscrCmd`, `Ambiente` |
+| Paulo Victor | Expressões e operadores | `exp`, `opRelacional`, `expSimples`, `opSoma`, `termo`, `opMult`, `fator`; classes `*Exp` |
+| Paulo Victor | Integração, execução e testes | `Main`, `pom.xml`, `TestePamu` e exemplos |
