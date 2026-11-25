@@ -1,204 +1,92 @@
-# PAMU — Linguagem de Programação
+﻿# PAMU — linguagem de programação
 
-**PAMU** é uma linguagem de programação didática interpretada, desenvolvida em **Java 17** com **JavaCC** e **Maven**, construída com análise léxica, análise sintática e execução baseada em Árvore Sintática Abstrata (**AST**).
-
----
-
-## Especificação Gramatical
-
-A linguagem segue a seguinte gramática livre de contexto:
-
-```bnf
-programa       -> lista-comandos
-
-bloco          -> '{' lista-comandos '}'
-
-lista-comandos -> lista-comandos comando | comando
-
-comando        -> atrib-cmd
-                | cond-cmd
-                | repet-cmd
-                | leit-cmd
-                | escr-cmd
-
-atrib-cmd      -> identificador '=' exp ';'
-
-cond-cmd       -> 'pa' '(' exp ')' bloco
-                | 'pa' '(' exp ')' bloco 'mu' bloco
-
-repet-cmd      -> 'paretir' '(' exp ')' bloco
-                | 'murepeti' '(' exp ')' bloco
-
-leit-cmd       -> 'muler' '(' identificador ')'
-                | 'paler' '(' identificador ')' ';'
-
-escr-cmd       -> 'muecreve' '(' exp ')'
-                | 'paescreve' '(' exp ')' ';'
-
-exp            -> exp-simples op-relacional exp-simples
-                | exp-simples
-
-op-relacional  -> '<' | '<=' | '>' | '>=' | '==' | '!='
-
-exp-simples    -> exp-simples op-soma termo
-                | termo
-
-op-soma        -> '+' | '-'
-
-termo          -> termo op-mult fator
-                | fator
-
-op-mult        -> '*' | '/'
-
-fator          -> '(' exp ')'
-                | numero
-                | identificador
-```
-
-> **Notas léxicas e sintáticas:**
-> - Comentários de linha (`// ...`) e de bloco (`/* ... */`) são ignorados.
-> - Números suportam inteiros e decimais (ex.: `42`, `3.14`) e sinal unário (`-x`, `+5`).
-> - Comandos de escrita (`paescreve` e `muecreve`) aceitam tanto expressões numéricas quanto textos entre aspas duplas (ex.: `paescreve("Aprovado");`).
-> - Ponto e vírgula (`;`) em comandos de leitura (`muler`/`paler`) e escrita (`muecreve`/`paescreve`) é aceito como opcional, atendendo às duas formas da especificação.
-
----
-
-## Palavras-Chave e Semântica
-
-| Comando / Palavra-chave | Equivalente | Descrição |
-|---|---|---|
-| `identificador = exp;` | Atribuição | Avalia `exp` e armazena o valor numérico na variável `identificador`. |
-| `pa (exp) { ... }` | `if` | Executa o bloco se `exp` for verdadeiro (valor diferente de `0`). |
-| `pa (exp) { ... } mu { ... }` | `if / else` | Executa o primeiro bloco se `exp != 0`; caso contrário, executa o bloco de `mu`. |
-| `paretir (exp) { ... }` | `while` | Repete a execução do bloco enquanto `exp` for verdadeiro (`!= 0`). |
-| `murepeti (exp) { ... }` | `while` | Forma alternativa de repetição condicional (mesma semântica de `paretir`). |
-| `muler(id)` / `paler(id);` | Leitura (`input`) | Lê um valor numérico da entrada padrão e armazena em `id`. |
-| `muecreve(exp)` / `paescreve(exp);` | Escrita (`print`) | Avalia `exp` e exibe o resultado na saída padrão. |
-
-### Operadores
-
-- **Aritméticos:** `+`, `-`, `*`, `/` (com verificação de divisão por zero).
-- **Relacionais:** `<`, `<=`, `>`, `>=`, `==`, `!=` (retornam `1` para verdadeiro e `0` para falso).
-
----
-
-## Arquitetura do Projeto
-
-```text
-PAMU-linguagem-programa-o/
-├── README.md
-└── demo/
-    ├── pom.xml
-    └── src/
-        ├── main/
-        │   ├── javacc/
-        │   │   └── CompiladorExp.jj       # Especificação léxica e sintática (JavaCC)
-        │   └── java/com/example/
-        │       ├── Main.java              # Ponto de entrada (demo ou execução de arquivo)
-        │       └── ast/                   # Árvore Sintática Abstrata (AST) e ambiente
-        │           ├── Ambiente.java      # Tabela de símbolos (memória), entrada e saída
-        │           ├── Comando.java       # Interface base de comandos
-        │           ├── Expressao.java     # Interface base de expressões
-        │           ├── BlocoCmd.java      # Bloco sequencial de comandos
-        │           ├── AtribCmd.java      # Comando de atribuição
-        │           ├── CondCmd.java       # Condicional pa / mu
-        │           ├── RepetCmd.java      # Repetição paretir / murepeti
-        │           ├── LeitCmd.java       # Leitura muler / paler
-        │           ├── EscrCmd.java       # Escrita muecreve / paescreve
-        │           ├── NumeroExp.java     # Literal numérico
-        │           ├── VariavelExp.java   # Acesso a variável
-        │           ├── BinariaExp.java    # Operações aritméticas e relacionais
-        │           └── UnariaExp.java     # Operadores unários (+ / -)
-        └── test/
-            └── java/com/example/
-                └── TestePamu.java         # Suite de testes da linguagem PAMU
-```
-
----
-
-## Como Compilar e Executar
-
-### Pré-requisitos
-
-- **Java JDK 17+**
-- **Apache Maven 3.8+**
-
-### 1. Compilar o projeto (gerando o parser JavaCC)
-
-```bash
-cd demo
-mvn clean test-compile
-```
-
-### 2. Executar o programa de demonstração
-
-```bash
-java -cp target/classes com.example.Main
-```
-
-### 3. Executar um arquivo de código PAMU
-
-Crie um arquivo (por exemplo, `programa.pamu`) e passe o caminho como argumento:
-
-```bash
-java -cp target/classes com.example.Main programa.pamu
-```
-
-### 4. Executar os testes
-
-```bash
-java -cp target/classes:target/test-classes com.example.TestePamu
-```
-
-> No Windows (PowerShell / CMD), use `;` no lugar de `:` no classpath:
-> ```powershell
-> java -cp "target/classes;target/test-classes" com.example.TestePamu
-> ```
-
----
-
-## Exemplos de Código em PAMU
-
-### Condicional (`pa` / `mu`)
+PAMU é uma linguagem didática para operações numéricas, entrada e saída, condições e repetições. O projeto usa Java 17, JavaCC e Maven. O JavaCC gera o analisador léxico e o sintático; o parser constrói uma árvore sintática abstrata (AST), que é executada por um interpretador Java. Não é gerado um executável nativo nem código de máquina.
 
 ```pamu
 paler(nota);
-
 pa (nota >= 7) {
-    paescreve(1);
+    MUESCREVE("Aprovado");
 } mu {
-    muecreve(0);
+    MUESCREVE("Reprovado");
 }
 ```
 
-### Laço de repetição (`paretir` e `murepeti`)
+## Linguagem e comportamento
 
-```pamu
-// Somatório de 1 até 5 usando paretir
-i = 1;
-soma = 0;
-paretir (i <= 5) {
-    soma = soma + i;
-    i = i + 1;
-}
-paescreve(soma);
+| Construção | Significado |
+| --- | --- |
+| `x = expressao;` | Avalia e guarda um número em `x`. A atribuição exige `;`. |
+| `pa (expressao) { ... } mu { ... }` | Condição com `mu` opcional; zero é falso e qualquer outro valor é verdadeiro. |
+| `paretir (expressao) { ... }` / `murepeti (...) { ... }` | Repete enquanto a condição for verdadeira; limite de 1.000.000 de iterações por execução do laço. |
+| `paler(x)` / `muler(x)` | Lê um número em `x`; `;` é opcional. |
+| `MUESCREVE(expressao)` / `muescreve(expressao)` / `paescreve(expressao)` | Escreve número ou texto literal; `;` é opcional. |
+| `expressao;` | Expressão isolada também é avaliada e impressa; `;` é opcional. |
 
-// Fatorial de 5 usando murepeti
-n = 5;
-fat = 1;
-murepeti (n > 1) {
-    fat = fat * n;
-    n = n - 1;
-}
-muecreve(fat)
+Números usam `.` como separador decimal no código; na entrada são aceitos `.` e `,`. Variáveis numéricas não inicializadas geram aviso e são lidas como zero. Cadeias entre aspas duplas são aceitas apenas diretamente na escrita, não em variáveis ou expressões; não há escape de aspas. Operadores relacionais retornam `1` ou `0`. Divisão por zero gera erro de execução. Comentários `//` e `/* ... */` são ignorados.
+
+## Gramática formal (EBNF)
+
+Esta gramática corresponde a `demo/src/main/javacc/CompiladorExp.jj`. `[]` significa opcional, `{}` repetição zero ou mais vezes, `|` alternativa e `()` agrupamento. Terminais estão entre aspas; `EOF` é o fim do arquivo.
+
+```ebnf
+programa      = comando, { comando }, EOF ;
+bloco         = "{", [ comando, { comando } ], "}" ;
+comando       = atribuicao | condicional | repeticao | leitura | escrita
+              | expressao, [ ";" ] ;
+atribuicao    = identificador, "=", expressao, ";" ;
+condicional   = "pa", "(", expressao, ")", bloco, [ "mu", bloco ] ;
+repeticao     = ( "paretir" | "murepeti" ), "(", expressao, ")", bloco ;
+leitura       = ( "muler" | "paler" ), "(", identificador, ")", [ ";" ] ;
+escrita       = ( "MUESCREVE" | "muescreve" | "paescreve" ), "(",
+                ( texto | expressao ), ")", [ ";" ] ;
+expressao     = soma, [ op_relacional, soma ] ;
+op_relacional = "<" | "<=" | ">" | ">=" | "==" | "!=" ;
+soma          = termo, { ( "+" | "-" ), termo } ;
+termo         = fator, { ( "*" | "/" ), fator | "(", expressao, ")" } ;
+fator         = "(", expressao, ")" | ( "+" | "-" ), fator
+              | numero | identificador ;
+numero        = digito, { digito }, [ ".", digito, { digito } ] ;
+identificador = ( letra | "_" ), { letra | digito | "_" } ;
+letra         = "a" | ... | "z" | "A" | ... | "Z" ;
+digito        = "0" | ... | "9" ;
+texto         = '"', { caractere_sem_aspas_ou_quebra_de_linha }, '"' ;
 ```
 
----
+Palavras reservadas não são identificadores. Espaços, tabulações, quebras de linha e comentários são ignorados pelo analisador léxico. O programa precisa de pelo menos um comando, mas um bloco pode ser vazio. Uma expressão aceita no máximo um operador relacional sem parênteses. A precedência, da maior para a menor, é: parênteses e sinais unários; multiplicação/divisão, incluindo multiplicação implícita como `2(3 + 4)`; adição/subtração; comparação. Operações de mesmo nível associam-se à esquerda.
 
-## Tratamento de Erros
+## Compilação e execução
 
-O interpretador identifica e informa de forma clara:
-- **`[ERRO LEXICO]`**: símbolos ou caracteres inválidos no código-fonte.
-- **`[ERRO SINTATICO]`**: violação da gramática com linha, coluna e símbolo inesperado.
-- **`[ERRO DE EXECUCAO]`**: divisão por zero ou excesso de iterações (proteção contra loops infinitos).
-- **`[AVISO]`**: uso de variável não declarada (assume valor `0`).
+Pré-requisitos: JDK 17 ou superior e Maven 3.8 ou superior. Na raiz do repositório:
+
+```powershell
+cd demo
+mvn clean test-compile
+java -cp target/classes com.example.Main
+java -cp target/classes com.example.Main ../exemplos/validos/condicional.pamu
+java -cp "target/classes;target/test-classes" com.example.TestePamu
+```
+
+O primeiro comando Maven gera os fontes do parser em `demo/target/generated-sources/javacc`, compila o projeto e compila a classe de testes. A classe de testes é executada explicitamente pelo último comando; `mvn test` sozinho não executa essa suíte manual. Em Linux/macOS, use `:` no lugar de `;` no classpath dos testes. A primeira compilação pode precisar baixar dependências Maven. Para outro arquivo, substitua o caminho passado a `Main`. A demonstração sem argumentos não precisa de entrada; o exemplo de condicional pede uma nota.
+
+Veja `exemplos/validos` e `exemplos/invalidos`. Os arquivos inválidos demonstram erros léxicos, sintáticos e de execução: os dois primeiros não executam nenhum comando, pois a análise é concluída antes da execução. Um erro de execução pode ocorrer depois de comandos anteriores já terem sido executados. As mensagens são `[ERRO LEXICO]`, `[ERRO SINTATICO]` ou `[ERRO DE EXECUCAO]`. O programa exibe o erro na saída e não garante código de saída diferente de zero; verifique a mensagem.
+
+## Estrutura
+
+- `demo/src/main/javacc/CompiladorExp.jj`: tokens, regras, construção da AST e tratamento de erros.
+- `demo/src/main/java/com/example/ast/`: nós da AST e ambiente de execução.
+- `demo/src/main/java/com/example/Main.java`: entrada de linha de comando e demonstração.
+- `demo/src/test/java/com/example/TestePamu.java`: testes executáveis manualmente.
+- `exemplos/`: programas válidos e inválidos.
+
+## Matriz de responsabilidade
+
+Os responsáveis individuais não constam nos arquivos disponíveis; o grupo deve preencher os nomes reais e ajustar a divisão conforme o trabalho efetivamente realizado antes da entrega. Cada pessoa deve explicar suas regras e o código correspondente.
+
+| Responsável | Parte | Código e regras para apresentar |
+| --- | --- | --- |
+| A preencher | Análise léxica e erros | `SKIP`, `TOKEN`, `executar` em `CompiladorExp.jj` |
+| A preencher | Programa, blocos e atribuição | `programa`, `bloco`, `listaComandos`, `comando`, `atribCmd`; `BlocoCmd`, `AtribCmd` |
+| A preencher | Condições e repetição | `condCmd`, `repetCmd`; `CondCmd`, `RepetCmd` |
+| A preencher | Entrada e saída | `leitCmd`, `escrCmd`; `LeitCmd`, `EscrCmd`, `Ambiente` |
+| A preencher | Expressões e operadores | `exp`, `opRelacional`, `expSimples`, `opSoma`, `termo`, `opMult`, `fator`; classes `*Exp` |
+| A preencher | Integração, execução e testes | `Main`, `pom.xml`, `TestePamu` e exemplos |

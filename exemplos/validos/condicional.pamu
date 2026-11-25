@@ -1,0 +1,6 @@
+paler(nota);
+pa (nota >= 7) {
+    MUESCREVE("Aprovado");
+} mu {
+    MUESCREVE("Reprovado");
+}

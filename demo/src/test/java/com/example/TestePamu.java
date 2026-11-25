@@ -26,7 +26,7 @@ public class TestePamu {
 
     public static void main(String[] args) {
         // 1. Atribuicao e expressoes aritmeticas com precedencia e parenteses
-        String saida1 = rodar("a = 2 + 3 * 4; b = (2 + 3) * 4; paescreve(a); muecreve(b)", "");
+        String saida1 = rodar("a = 2 + 3 * 4; b = (2 + 3) * 4; paescreve(a); MUESCREVE(b)", "");
         verificar("Aritmetica e precedencia",
                 saida1.contains(": 14") && saida1.contains(": 20"),
                 saida1);
@@ -38,13 +38,13 @@ public class TestePamu {
                 saida2);
 
         // 3. Condicional pa (falso) com mu - nao deve executar bloco pa!
-        String saida3 = rodar("x = 5; pa (x > 10) { paescreve(100); } mu { muecreve(200); }", "");
+        String saida3 = rodar("x = 5; pa (x > 10) { paescreve(100); } mu { MUESCREVE(200); }", "");
         verificar("Condicional pa/mu ramo falso",
                 !saida3.contains(": 100") && saida3.contains(": 200"),
                 saida3);
 
         // 4. Condicional pa (verdadeiro) com mu - nao deve executar bloco mu!
-        String saida4 = rodar("x = 15; pa (x > 10) { paescreve(100); } mu { muecreve(200); }", "");
+        String saida4 = rodar("x = 15; pa (x > 10) { paescreve(100); } mu { MUESCREVE(200); }", "");
         verificar("Condicional pa/mu ramo verdadeiro",
                 saida4.contains(": 100") && !saida4.contains(": 200"),
                 saida4);
@@ -56,7 +56,7 @@ public class TestePamu {
                 saida5);
 
         // 6. Repeticao murepeti (fatorial de 5 = 120)
-        String saida6 = rodar("n = 5; fat = 1; murepeti (n > 1) { fat = fat * n; n = n - 1; } muecreve(fat)", "");
+        String saida6 = rodar("n = 5; fat = 1; murepeti (n > 1) { fat = fat * n; n = n - 1; } MUESCREVE(fat)", "");
         verificar("Repeticao murepeti",
                 saida6.contains(": 120"),
                 saida6);
@@ -88,13 +88,17 @@ public class TestePamu {
                 saida10.contains("[ERRO SINTATICO]"),
                 saida10);
 
-        // 11. Escrita de texto (string) em paescreve e muecreve
-        String saida11 = rodar("paler(nota); pa (nota >= 7) { paescreve(\"Aprovado\"); } mu { muecreve(\"Reprovado\"); }", "8\n");
-        verificar("Escrita de string em paescreve/muecreve",
+        // 11. Escrita de texto (string) em paescreve e MUESCREVE
+        String saida11 = rodar("paler(nota); pa (nota >= 7) { paescreve(\"Aprovado\"); } mu { MUESCREVE(\"Reprovado\"); }", "8\n");
+        verificar("Escrita de string em paescreve/MUESCREVE",
                 saida11.contains("Aprovado") && !saida11.contains("Reprovado"),
                 saida11);
 
-        System.out.println("\nTodos os 11 testes da linguagem PAMU passaram com sucesso!");
+        String saida12 = rodar("MUESCREVE(42); muescreve(\"ok\");", "");
+        verificar("Nova palavra de escrita em maiusculas e minusculas",
+                saida12.contains(": 42") && saida12.contains("ok"), saida12);
+
+        System.out.println("\nTodos os 12 testes da linguagem PAMU passaram com sucesso!");
     }
 }
 

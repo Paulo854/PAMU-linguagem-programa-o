@@ -78,7 +78,7 @@ TOKEN :
 |   < PALER: "paler" >
 |   < MULER: "muler" >
 |   < PAESCREVE: "paescreve" >
-|   < MUECREVE: "muecreve" >
+|   < MUESCREVE: "MUESCREVE" | "muescreve" >
 
 |   < ABRE_CHAVE: "{" >
 |   < FECHA_CHAVE: "}" >
@@ -211,7 +211,7 @@ Comando escrCmd() :
     Token texto;
 }
 {
-    ( <MUECREVE> | <PAESCREVE> ) <ABRE_PAR>
+    ( <MUESCREVE> | <PAESCREVE> ) <ABRE_PAR>
     (
         texto = <STRING> <FECHA_PAR> [ <PONTO_VIRGULA> ]
         {

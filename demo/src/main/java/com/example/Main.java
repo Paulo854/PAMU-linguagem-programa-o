@@ -25,7 +25,7 @@ public class Main {
 
                 // Condicional pa / mu
                 pa (resultado >= 20) {
-                    muecreve(resultado - 5);
+                    MUESCREVE(resultado - 5);
                 } mu {
                     paescreve(0);
                 }
@@ -40,7 +40,7 @@ public class Main {
                 // Repeticao com murepeti (contagem regressiva de 3 ate 1)
                 j = 3;
                 murepeti (j > 0) {
-                    muecreve(j);
+                    MUESCREVE(j);
                     j = j - 1;
                 }
                 """;

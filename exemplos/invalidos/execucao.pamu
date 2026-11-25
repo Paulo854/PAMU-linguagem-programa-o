@@ -1,0 +1,2 @@
+// Sintaticamente valido, mas falha durante a execucao.
+MUESCREVE(10 / 0);

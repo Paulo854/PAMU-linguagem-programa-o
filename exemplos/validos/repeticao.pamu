@@ -1,0 +1,9 @@
+// Soma de 1 ate 5 e calculo com precedencia e multiplicacao implicita.
+i = 1;
+soma = 0;
+paretir (i <= 5) {
+    soma = soma + i;
+    i = i + 1;
+}
+MUESCREVE(soma);
+muescreve(2(3 + 4));
