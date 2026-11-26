@@ -98,7 +98,39 @@ public class TestePamu {
         verificar("Nova palavra de escrita em maiusculas e minusculas",
                 saida12.contains(": 42") && saida12.contains("ok"), saida12);
 
-        System.out.println("\nTodos os 12 testes da linguagem PAMU passaram com sucesso!");
+        // 13. Operadores logicos && e ||
+        String saida13 = rodar(
+                "paescreve(1 && 1); paescreve(1 && 0); paescreve(0 || 1); paescreve(0 || 0);",
+                "");
+        long logicalOnes = saida13.lines().filter(l -> l.endsWith(": 1")).count();
+        long logicalZeros = saida13.lines().filter(l -> l.endsWith(": 0")).count();
+        verificar("Operadores logicos",
+                logicalOnes == 2 && logicalZeros == 2,
+                saida13);
+
+        // 14. Precedencia entre ||, && e operadores relacionais
+        String saida14 = rodar("paescreve(1 < 2 || 3 > 4 && 5 == 5); paescreve(0 && 10 / 0);", "");
+        verificar("Precedencia e curto-circuito",
+                saida14.lines().filter(l -> l.endsWith(": 1")).count() == 1
+                        && saida14.contains(": 0")
+                        && !saida14.contains("[ERRO DE EXECUCAO]"),
+                saida14);
+
+        // 15. Curto-circuito de ||
+        String saida15 = rodar("paescreve(1 || 10 / 0);", "");
+        verificar("Curto-circuito do ||",
+                saida15.contains(": 1") && !saida15.contains("[ERRO DE EXECUCAO]"),
+                saida15);
+
+        // 16. Strings com aspas, barras invertidas e escapes de whitespace
+        String saida16 = rodar(
+                "paescreve(\"Esta e: \\\"uma string!\\\".\\nLinha 2\\\\fim\\ttab\");",
+                "");
+        verificar("Escapes em strings",
+                saida16.equals("Esta e: \"uma string!\".\nLinha 2\\fim\ttab\n"),
+                saida16);
+
+        System.out.println("\nTodos os 16 testes da linguagem PAMU passaram com sucesso!");
     }
 }
 

@@ -14,6 +14,20 @@ public class BinariaExp implements Expressao {
     @Override
     public double avaliar(Ambiente env) {
         double v1 = esquerda.avaliar(env);
+
+        switch (operador) {
+            case "&&":
+                if (v1 == 0.0) {
+                    return 0.0;
+                }
+                return (direita.avaliar(env) != 0.0) ? 1.0 : 0.0;
+            case "||":
+                if (v1 != 0.0) {
+                    return 1.0;
+                }
+                return (direita.avaliar(env) != 0.0) ? 1.0 : 0.0;
+        }
+
         double v2 = direita.avaliar(env);
 
         switch (operador) {

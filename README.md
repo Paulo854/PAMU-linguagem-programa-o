@@ -16,13 +16,19 @@ pa (nota >= 7) {
 | Construção | Significado |
 | --- | --- |
 | `x = expressao;` | Avalia e guarda um número em `x`. A atribuição exige `;`. |
-| `pa (expressao) { ... } mu { ... }` | Condição com `mu` opcional; zero é falso e qualquer outro valor é verdadeiro. |
+| `pa (expressao) { ... } mu { ... }` | Condição com `mu` opcional; zero é falso e qualquer outro valor é verdadeiro. Aceita `&&` (E lógico) e `\|\|` (OU lógico), com precedência para `&&` sobre `\|\|`; ambos usam curto-circuito. |
 | `paretir (expressao) { ... }` / `murepeti (...) { ... }` | Repete enquanto a condição for verdadeira; limite de 1.000.000 de iterações por execução do laço. |
 | `paler(x)` / `muler(x)` | Lê um número em `x`; `;` é opcional. |
 | `MUESCREVE(expressao)` / `muescreve(expressao)` / `paescreve(expressao)` | Escreve número ou texto literal; `;` é opcional. |
 | `expressao;` | Expressão isolada também é avaliada e impressa; `;` é opcional. |
 
-Números usam `.` como separador decimal no código; na entrada são aceitos `.` e `,`. Variáveis numéricas não inicializadas geram aviso e são lidas como zero. Cadeias entre aspas duplas são aceitas apenas diretamente na escrita, não em variáveis ou expressões; não há escape de aspas. Operadores relacionais retornam `1` ou `0`. Divisão por zero gera erro de execução. Comentários `//` e `/* ... */` são ignorados.
+Números usam `.` como separador decimal no código; na entrada são aceitos `.` e `,`. Variáveis numéricas não inicializadas geram aviso e são lidas como zero. Strings entre aspas duplas são aceitas apenas diretamente na escrita, não em variáveis ou expressões. Dentro delas, `\"` representa aspas, `\\` uma barra invertida, `\n` uma quebra de linha, `\r` retorno de carro, `\t` tabulação, `\b` backspace e `\f` avanço de página. Uma quebra de linha literal não pode aparecer dentro da string; use `\n`. Por exemplo:
+
+```pamu
+paescreve("Esta e: \"uma string!\".\nSegunda linha");
+```
+
+Operadores relacionais e lógicos retornam `1` ou `0`; `&&` e `||` avaliam o operando direito somente quando necessário. Divisão por zero gera erro de execução. Comentários `//` e `/* ... */` são ignorados.
 
 ## Gramática formal (EBNF)
 
@@ -39,7 +45,10 @@ repeticao     = ( "paretir" | "murepeti" ), "(", expressao, ")", bloco ;
 leitura       = ( "muler" | "paler" ), "(", identificador, ")", [ ";" ] ;
 escrita       = ( "MUESCREVE" | "muescreve" | "paescreve" ), "(",
                 ( texto | expressao ), ")", [ ";" ] ;
-expressao     = soma, [ op_relacional, soma ] ;
+expressao     = expressao_ou ;
+expressao_ou  = expressao_e, { "||", expressao_e } ;
+expressao_e   = relacional, { "&&", relacional } ;
+relacional    = soma, [ op_relacional, soma ] ;
 op_relacional = "<" | "<=" | ">" | ">=" | "==" | "!=" ;
 soma          = termo, { ( "+" | "-" ), termo } ;
 termo         = fator, { ( "*" | "/" ), fator | "(", expressao, ")" } ;
@@ -49,10 +58,13 @@ numero        = digito, { digito }, [ ".", digito, { digito } ] ;
 identificador = ( letra | "_" ), { letra | digito | "_" } ;
 letra         = "a" | ... | "z" | "A" | ... | "Z" ;
 digito        = "0" | ... | "9" ;
-texto         = '"', { caractere_sem_aspas_ou_quebra_de_linha }, '"' ;
+texto         = '"', { caractere_texto | escape }, '"' ;
+escape        = "\\", ( '"' | "\\" | "n" | "r" | "t" | "b" | "f" ) ;
 ```
 
-Palavras reservadas não são identificadores. Espaços, tabulações, quebras de linha e comentários são ignorados pelo analisador léxico. O programa precisa de pelo menos um comando, mas um bloco pode ser vazio. Uma expressão aceita no máximo um operador relacional sem parênteses. A precedência, da maior para a menor, é: parênteses e sinais unários; multiplicação/divisão, incluindo multiplicação implícita como `2(3 + 4)`; adição/subtração; comparação. Operações de mesmo nível associam-se à esquerda.
+Em `texto`, `caractere_texto` representa qualquer caractere exceto aspas duplas, barra invertida e quebras de linha; esses caracteres são escritos usando os escapes correspondentes.
+
+Palavras reservadas não são identificadores. Espaços, tabulações, quebras de linha e comentários são ignorados pelo analisador léxico. O programa precisa de pelo menos um comando, mas um bloco pode ser vazio. Uma expressão aceita no máximo um operador relacional sem parênteses. A precedência, da maior para a menor, é: parênteses e sinais unários; multiplicação/divisão, incluindo multiplicação implícita como `2(3 + 4)`; adição/subtração; comparação; `&&`; `||`. Operações do mesmo nível associam-se à esquerda.
 
 ## Compilação e execução
 
@@ -88,5 +100,7 @@ A matriz abaixo identifica o responsável pelo desenvolvimento de cada parte da 
 | Paulo Victor | Programa, blocos e atribuição | `programa`, `bloco`, `listaComandos`, `comando`, `atribCmd`; `BlocoCmd`, `AtribCmd` |
 | Paulo Victor | Condições e repetição | `condCmd`, `repetCmd`; `CondCmd`, `RepetCmd` |
 | Paulo Victor | Entrada e saída | `leitCmd`, `escrCmd`; `LeitCmd`, `EscrCmd`, `Ambiente` |
-| Paulo Victor | Expressões e operadores | `exp`, `opRelacional`, `expSimples`, `opSoma`, `termo`, `opMult`, `fator`; classes `*Exp` |
+| Paulo Victor | Expressões e operadores aritméticos e relacionais | `exp`, `opRelacional`, `expSimples`, `opSoma`, `termo`, `opMult`, `fator`; classes `*Exp` |
+| Murilo Mello | Operadores lógicos | Tokens `E_LOGICO` e `OU_LOGICO`; `expOu`, `opOu`, `expE`, `opE`, `expRelacional`; operadores `&&` e `\|\|`, precedência e curto-circuito |
+| Murilo Mello | Strings e escapes | Token `STRING`, `decodificarString`, `escrCmd`; escapes `\"`, `\\`, `\n`, `\r`, `\t`, `\b`, `\f` |
 | Paulo Victor | Integração, execução e testes | `Main`, `pom.xml`, `TestePamu` e exemplos |

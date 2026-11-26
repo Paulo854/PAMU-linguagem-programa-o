@@ -19,6 +19,30 @@ public class CompiladorExp implements CompiladorExpConstants {
     public static Map<String, Double> memoria = new HashMap<String, Double>();
     private static Scanner teclado = new Scanner(System.in).useLocale(Locale.US);
 
+    private static String decodificarString(String token) {
+        StringBuilder resultado = new StringBuilder();
+        for (int i = 1; i < token.length() - 1; i++) {
+            char atual = token.charAt(i);
+            if (atual != '\\') {
+                resultado.append(atual);
+                continue;
+            }
+
+            char escape = token.charAt(++i);
+            switch (escape) {
+                case '"': resultado.append('"'); break;
+                case '\\': resultado.append('\\'); break;
+                case 'n': resultado.append('\n'); break;
+                case 'r': resultado.append('\r'); break;
+                case 't': resultado.append('\t'); break;
+                case 'b': resultado.append('\b'); break;
+                case 'f': resultado.append('\f'); break;
+                default: throw new IllegalArgumentException("Escape de string desconhecido: \\" + escape);
+            }
+        }
+        return resultado.toString();
+    }
+
     public static void limparMemoria() {
         memoria.clear();
     }
@@ -73,7 +97,7 @@ public class CompiladorExp implements CompiladorExpConstants {
     case PALER:
     case MULER:
     case PAESCREVE:
-    case MUECREVE:
+    case MUESCREVE:
     case ABRE_PAR:
     case MAIS:
     case MENOS:
@@ -104,7 +128,7 @@ comandos.add(c);
       case PALER:
       case MULER:
       case PAESCREVE:
-      case MUECREVE:
+      case MUESCREVE:
       case ABRE_PAR:
       case MAIS:
       case MENOS:
@@ -147,7 +171,7 @@ comandos.add(c);
         break;
         }
       case PAESCREVE:
-      case MUECREVE:{
+      case MUESCREVE:{
         c = escrCmd();
 {if ("" != null) return c;}
         break;
@@ -269,8 +293,8 @@ comandos.add(c);
   final public Comando escrCmd() throws ParseException {Expressao val;
     Token texto;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case MUECREVE:{
-      jj_consume_token(MUECREVE);
+    case MUESCREVE:{
+      jj_consume_token(MUESCREVE);
       break;
       }
     case PAESCREVE:{
@@ -296,7 +320,7 @@ comandos.add(c);
         jj_la1[9] = jj_gen;
         ;
       }
-String conteudo = texto.image.substring(1, texto.image.length() - 1);
+String conteudo = decodificarString(texto.image);
             {if ("" != null) return new EscrCmd(conteudo);}
       break;
       }
@@ -327,7 +351,71 @@ String conteudo = texto.image.substring(1, texto.image.length() - 1);
     throw new Error("Missing return statement in function");
 }
 
-  final public Expressao exp() throws ParseException {Expressao esq;
+  final public Expressao exp() throws ParseException {Expressao e;
+    e = expOu();
+{if ("" != null) return e;}
+    throw new Error("Missing return statement in function");
+}
+
+  final public Expressao expOu() throws ParseException {Expressao esq;
+    Expressao dir;
+    String op;
+    esq = expE();
+    label_2:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case OU_LOGICO:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[12] = jj_gen;
+        break label_2;
+      }
+      op = opOu();
+      dir = expE();
+esq = new BinariaExp(esq, op, dir);
+    }
+{if ("" != null) return esq;}
+    throw new Error("Missing return statement in function");
+}
+
+  final public String opOu() throws ParseException {Token op;
+    op = jj_consume_token(OU_LOGICO);
+{if ("" != null) return op.image;}
+    throw new Error("Missing return statement in function");
+}
+
+  final public Expressao expE() throws ParseException {Expressao esq;
+    Expressao dir;
+    String op;
+    esq = expRelacional();
+    label_3:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case E_LOGICO:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[13] = jj_gen;
+        break label_3;
+      }
+      op = opE();
+      dir = expRelacional();
+esq = new BinariaExp(esq, op, dir);
+    }
+{if ("" != null) return esq;}
+    throw new Error("Missing return statement in function");
+}
+
+  final public String opE() throws ParseException {Token op;
+    op = jj_consume_token(E_LOGICO);
+{if ("" != null) return op.image;}
+    throw new Error("Missing return statement in function");
+}
+
+  final public Expressao expRelacional() throws ParseException {Expressao esq;
     Expressao dir;
     String op;
     esq = expSimples();
@@ -344,7 +432,7 @@ String conteudo = texto.image.substring(1, texto.image.length() - 1);
       break;
       }
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[14] = jj_gen;
       ;
     }
 {if ("" != null) return esq;}
@@ -378,7 +466,7 @@ String conteudo = texto.image.substring(1, texto.image.length() - 1);
       break;
       }
     default:
-      jj_la1[13] = jj_gen;
+      jj_la1[15] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -390,7 +478,7 @@ String conteudo = texto.image.substring(1, texto.image.length() - 1);
     Expressao proximo;
     String op;
     total = termo();
-    label_2:
+    label_4:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case MAIS:
@@ -399,8 +487,8 @@ String conteudo = texto.image.substring(1, texto.image.length() - 1);
         break;
         }
       default:
-        jj_la1[14] = jj_gen;
-        break label_2;
+        jj_la1[16] = jj_gen;
+        break label_4;
       }
       op = opSoma();
       proximo = termo();
@@ -421,7 +509,7 @@ total = new BinariaExp(total, op, proximo);
       break;
       }
     default:
-      jj_la1[15] = jj_gen;
+      jj_la1[17] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -433,7 +521,7 @@ total = new BinariaExp(total, op, proximo);
     Expressao proximo;
     String op;
     total = fator();
-    label_3:
+    label_5:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case ABRE_PAR:
@@ -443,8 +531,8 @@ total = new BinariaExp(total, op, proximo);
         break;
         }
       default:
-        jj_la1[16] = jj_gen;
-        break label_3;
+        jj_la1[18] = jj_gen;
+        break label_5;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case VEZES:
@@ -462,7 +550,7 @@ total = new BinariaExp(total, "*", proximo);
         break;
         }
       default:
-        jj_la1[17] = jj_gen;
+        jj_la1[19] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -482,7 +570,7 @@ total = new BinariaExp(total, "*", proximo);
       break;
       }
     default:
-      jj_la1[18] = jj_gen;
+      jj_la1[20] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -523,7 +611,7 @@ total = new BinariaExp(total, "*", proximo);
       break;
       }
     default:
-      jj_la1[19] = jj_gen;
+      jj_la1[21] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -538,7 +626,7 @@ total = new BinariaExp(total, "*", proximo);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3R_atribCmd_166_5_4()
+  private boolean jj_3R_atribCmd_192_5_6()
  {
     if (jj_scan_token(IDENTIFICADOR)) return true;
     if (jj_scan_token(ATRIBUICAO)) return true;
@@ -547,7 +635,7 @@ total = new BinariaExp(total, "*", proximo);
 
   private boolean jj_3_1()
  {
-    if (jj_3R_atribCmd_166_5_4()) return true;
+    if (jj_3R_atribCmd_192_5_6()) return true;
     return false;
   }
 
@@ -562,7 +650,7 @@ total = new BinariaExp(total, "*", proximo);
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
   private int jj_gen;
-  final private int[] jj_la1 = new int[20];
+  final private int[] jj_la1 = new int[22];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -570,10 +658,10 @@ total = new BinariaExp(total, "*", proximo);
 	   jj_la1_init_1();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x98027e80,0x98027e80,0x80000,0x98027e80,0x100,0x600,0x1800,0x80000,0x6000,0x80000,0x80000,0x98020000,0x7e00000,0x7e00000,0x18000000,0x18000000,0x60020000,0x60020000,0x60000000,0x98020000,};
+	   jj_la1_0 = new int[] {0x60027e80,0x60027e80,0x80000,0x60027e80,0x100,0x600,0x1800,0x80000,0x6000,0x80000,0x80000,0x60020000,0x10000000,0x8000000,0x7e00000,0x7e00000,0x60000000,0x60000000,0x80020000,0x80020000,0x80000000,0x60020000,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x2,0x2,0x0,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x3,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x2,};
+	   jj_la1_1 = new int[] {0xa,0xa,0x0,0xa,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0xe,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x1,0xa,};
 	}
   final private JJCalls[] jj_2_rtns = new JJCalls[1];
   private boolean jj_rescan = false;
@@ -590,7 +678,7 @@ total = new BinariaExp(total, "*", proximo);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 20; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 22; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -605,7 +693,7 @@ total = new BinariaExp(total, "*", proximo);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 20; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 22; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -616,7 +704,7 @@ total = new BinariaExp(total, "*", proximo);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 20; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 22; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -635,7 +723,7 @@ total = new BinariaExp(total, "*", proximo);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 20; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 22; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -645,7 +733,7 @@ total = new BinariaExp(total, "*", proximo);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 20; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 22; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -655,7 +743,7 @@ total = new BinariaExp(total, "*", proximo);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 20; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 22; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -786,12 +874,12 @@ total = new BinariaExp(total, "*", proximo);
   /** Generate ParseException. */
   public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[34];
+	 boolean[] la1tokens = new boolean[36];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
 	 }
-	 for (int i = 0; i < 20; i++) {
+	 for (int i = 0; i < 22; i++) {
 	   if (jj_la1[i] == jj_gen) {
 		 for (int j = 0; j < 32; j++) {
 		   if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -803,7 +891,7 @@ total = new BinariaExp(total, "*", proximo);
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 34; i++) {
+	 for (int i = 0; i < 36; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;

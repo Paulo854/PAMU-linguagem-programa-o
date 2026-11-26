@@ -22,6 +22,30 @@ public class CompiladorExp {
     public static Map<String, Double> memoria = new HashMap<String, Double>();
     private static Scanner teclado = new Scanner(System.in).useLocale(Locale.US);
 
+    private static String decodificarString(String token) {
+        StringBuilder resultado = new StringBuilder();
+        for (int i = 1; i < token.length() - 1; i++) {
+            char atual = token.charAt(i);
+            if (atual != '\\') {
+                resultado.append(atual);
+                continue;
+            }
+
+            char escape = token.charAt(++i);
+            switch (escape) {
+                case '"': resultado.append('"'); break;
+                case '\\': resultado.append('\\'); break;
+                case 'n': resultado.append('\n'); break;
+                case 'r': resultado.append('\r'); break;
+                case 't': resultado.append('\t'); break;
+                case 'b': resultado.append('\b'); break;
+                case 'f': resultado.append('\f'); break;
+                default: throw new IllegalArgumentException("Escape de string desconhecido: \\" + escape);
+            }
+        }
+        return resultado.toString();
+    }
+
     public static void limparMemoria() {
         memoria.clear();
     }
@@ -93,6 +117,8 @@ TOKEN :
 |   < DIFERENTE: "!=" >
 |   < MENOR: "<" >
 |   < MAIOR: ">" >
+|   < E_LOGICO: "&&" >
+|   < OU_LOGICO: "||" >
 
 |   < MAIS: "+" >
 |   < MENOS: "-" >
@@ -100,7 +126,7 @@ TOKEN :
 |   < DIVIDIR: "/" >
 
 |   < NUMERO: (["0"-"9"])+ ("." (["0"-"9"])+)? >
-|   < STRING: "\"" (~["\"", "\n", "\r"])* "\"" >
+|   < STRING: "\"" ( "\\" ["\"", "\\", "n", "r", "t", "b", "f"] | ~["\"", "\\", "\n", "\r"] )* "\"" >
 |   < IDENTIFICADOR: ["a"-"z", "A"-"Z", "_"] (["a"-"z", "A"-"Z", "0"-"9", "_"])* >
 }
 
@@ -215,7 +241,7 @@ Comando escrCmd() :
     (
         texto = <STRING> <FECHA_PAR> [ <PONTO_VIRGULA> ]
         {
-            String conteudo = texto.image.substring(1, texto.image.length() - 1);
+            String conteudo = decodificarString(texto.image);
             return new EscrCmd(conteudo);
         }
     |
@@ -227,6 +253,77 @@ Comando escrCmd() :
 }
 
 Expressao exp() :
+{
+    Expressao e;
+}
+{
+    e = expOu()
+    {
+        return e;
+    }
+}
+
+Expressao expOu() :
+{
+    Expressao esq;
+    Expressao dir;
+    String op;
+}
+{
+    esq = expE()
+    (
+        op = opOu() dir = expE()
+        {
+            esq = new BinariaExp(esq, op, dir);
+        }
+    )*
+    {
+        return esq;
+    }
+}
+
+String opOu() :
+{
+    Token op;
+}
+{
+    op = <OU_LOGICO>
+    {
+        return op.image;
+    }
+}
+
+Expressao expE() :
+{
+    Expressao esq;
+    Expressao dir;
+    String op;
+}
+{
+    esq = expRelacional()
+    (
+        op = opE() dir = expRelacional()
+        {
+            esq = new BinariaExp(esq, op, dir);
+        }
+    )*
+    {
+        return esq;
+    }
+}
+
+String opE() :
+{
+    Token op;
+}
+{
+    op = <E_LOGICO>
+    {
+        return op.image;
+    }
+}
+
+Expressao expRelacional() :
 {
     Expressao esq;
     Expressao dir;
