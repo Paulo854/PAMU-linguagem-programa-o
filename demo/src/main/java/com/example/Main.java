@@ -43,6 +43,26 @@ public class Main {
                     MUESCREVE(j);
                     j = j - 1;
                 }
+
+                //  E e Ou logicos em pa / mu
+                pa (resultado >= 20 && x == 10) {
+                    MUESCREVE(resultado + 10);
+                } mu {
+                    paescreve(0);
+                }
+                pa (resultado == 10 || x == 10) {
+                    MUESCREVE(10);
+                } mu {
+                    paescreve(0);
+                }
+                pa (resultado == 10 || x == 9) {
+                    MUESCREVE(10);
+                } mu {
+                    paescreve(0);
+                }
+
+                //  Uso de aspas, barras invertidas, quebras de linha e tabulacao no input
+                MUESCREVE(\"Esta e: \\\"uma string!\\\".\\nLinha 2\\n\\\\fim\\n\\ttab\")
                 """;
 
         System.out.println("=== Executando programa PAMU ===");

@@ -25,7 +25,7 @@ public interface CompiladorExpConstants {
   /** RegularExpression Id. */
   int PAESCREVE = 13;
   /** RegularExpression Id. */
-  int MUECREVE = 14;
+  int MUESCREVE = 14;
   /** RegularExpression Id. */
   int ABRE_CHAVE = 15;
   /** RegularExpression Id. */
@@ -51,19 +51,23 @@ public interface CompiladorExpConstants {
   /** RegularExpression Id. */
   int MAIOR = 26;
   /** RegularExpression Id. */
-  int MAIS = 27;
+  int E_LOGICO = 27;
   /** RegularExpression Id. */
-  int MENOS = 28;
+  int OU_LOGICO = 28;
   /** RegularExpression Id. */
-  int VEZES = 29;
+  int MAIS = 29;
   /** RegularExpression Id. */
-  int DIVIDIR = 30;
+  int MENOS = 30;
   /** RegularExpression Id. */
-  int NUMERO = 31;
+  int VEZES = 31;
   /** RegularExpression Id. */
-  int STRING = 32;
+  int DIVIDIR = 32;
   /** RegularExpression Id. */
-  int IDENTIFICADOR = 33;
+  int NUMERO = 33;
+  /** RegularExpression Id. */
+  int STRING = 34;
+  /** RegularExpression Id. */
+  int IDENTIFICADOR = 35;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -84,7 +88,7 @@ public interface CompiladorExpConstants {
     "\"paler\"",
     "\"muler\"",
     "\"paescreve\"",
-    "\"muecreve\"",
+    "<MUESCREVE>",
     "\"{\"",
     "\"}\"",
     "\"(\"",
@@ -97,6 +101,8 @@ public interface CompiladorExpConstants {
     "\"!=\"",
     "\"<\"",
     "\">\"",
+    "\"&&\"",
+    "\"||\"",
     "\"+\"",
     "\"-\"",
     "\"*\"",
